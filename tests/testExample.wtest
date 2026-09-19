@@ -1,0 +1,10 @@
+// Archivo de tests de referencia, borrar luego de desarrollar propios
+import example.*
+
+describe "groupo de tests" {
+
+  test "Payer comeinza en el centro del tabler" {
+    assert.equals(game.center(), player.position())
+  }
+
+}
