@@ -1,10 +1,10 @@
 // Archivo de tests de referencia, borrar luego de desarrollar propios
-import example.*
+import anzuelo.*
 
 describe "groupo de tests" {
 
   test "Payer comeinza en el centro del tabler" {
-    assert.equals(game.center(), player.position())
+    assert.equals(game.center(), anzuelo.position())
   }
 
 }

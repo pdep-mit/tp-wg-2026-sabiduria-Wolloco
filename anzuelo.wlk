@@ -1,6 +1,6 @@
 // Este archivo puede ser borrado cuando empiecen 
 // a desarrollar su trabajo
-object player {
+object anzuelo {
   method position() = game.center()
-  method image() = "player.png"
+  method image() = "anzuelo.png"
 }

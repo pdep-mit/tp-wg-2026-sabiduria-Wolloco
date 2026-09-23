@@ -1,13 +1,13 @@
 # Wollok Game: Título de juego
 
-**Grupo:** Nombre de Grupo
+**Grupo:** wolloco
 
 **Integrantes:**
-- Nombre y Apellido
-- Nombre y Apellido
-- Nombre y Apellido
-- Nombre y Apellido
-- Nombre y Apellido
+- Juan Bautista Larrain
+- Juan Cruz Pedriel
+- Martin Jose Tello
+- Shirly Jusid
+- Sofia Rapetti
 
 ## Consignas
 
