@@ -1,15 +1,21 @@
 import wollok.game.*
 import anzuelo.*
+import peces.*
 
 program NombreDeJuego {
 	// TODO: Cambiar esto por lo que necesiten
 	game.title("Grupo: wolloco | Bajo el hielo")
 	game.height(10)
 	game.width(10)
-
 	game.boardGround("fondo.jpg")
 
 	game.addVisual(anzuelo)
+
+	const pezDer = new PezRapido(position = game.at(0,2), orientacion = "derecha")
+	const pezIzq = new PezRapido(position = game.at(10,4), orientacion = "izquierda")
+	game.addVisual(pezDer)
+	game.addVisual(pezIzq)
+	game.onTick(100, "movimientPez", {pezDer.mover(); pezIzq.mover()})	//onTick ejecuta una accion de forma repetitiva cada "X" milisegundos
 
 	game.start()
 }
