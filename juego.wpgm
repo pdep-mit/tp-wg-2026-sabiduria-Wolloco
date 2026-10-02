@@ -10,6 +10,7 @@ program NombreDeJuego {
 	game.boardGround("fondo.jpg")
 
 	game.addVisual(anzuelo)
+	game.addVisual(marcadorPuntos)
 
 	const pezDer = new PezRapido(position = game.at(0,2), orientacion = "derecha")
 	const pezIzq = new PezRapido(position = game.at(10,4), orientacion = "izquierda")

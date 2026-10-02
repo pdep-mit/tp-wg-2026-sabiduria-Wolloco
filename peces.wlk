@@ -1,6 +1,9 @@
+import wollok.game.*
 class PezRapido {
   var property position
   var property orientacion
+
+  method daPuntos() = 25
 
   method image() {
     if(orientacion == "derecha") {
@@ -33,4 +36,13 @@ class PezRapido {
         position = position.left(1)
     }	
   }
+}
+
+class PezComun {
+
+  var property position
+  var property orientacion
+
+  method daPuntos() = 5
+
 }

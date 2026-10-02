@@ -1,10 +1,17 @@
-// Archivo de tests de referencia, borrar luego de desarrollar propios
+import peces.*
 import anzuelo.*
 
-describe "groupo de tests" {
+describe "Tests de Pesca y Puntos"{
 
-  test "Payer comeinza en el centro del tabler" {
-    assert.equals(game.center(), anzuelo.position())
+  test "Al pescar un pez comun, el anzuelo suma 5 puntos"{
+    const pezComun = new PezComun(position = game.at(1, 1), orientacion = "derecha")
+    anzuelo.pescar(pezComun)
+    assert.equals(5, anzuelo.puntos())
   }
-
+  test "Al pescar un pez rapido, el anzuelo suma 25 puntos"{
+    const pezRapido = new PezRapido(position = game.at(2, 2), orientacion = "izquierda")
+    anzuelo.pescar(pezRapido)
+    assert.equals(25, anzuelo.puntos())
+  }
 }
+
