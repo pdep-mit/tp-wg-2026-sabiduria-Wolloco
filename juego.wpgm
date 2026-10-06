@@ -18,5 +18,14 @@ program NombreDeJuego {
 	game.addVisual(pezIzq)
 	game.onTick(100, "movimientPez", {pezDer.mover(); pezIzq.mover()})	//onTick ejecuta una accion de forma repetitiva cada "X" milisegundos
 
+  keyboard.up().onPressDo({ anzuelo.subirAnzuelo() })
+  keyboard.down().onPressDo({ anzuelo.bajarAnzuelo() })
+  keyboard.right().onPressDo({anzuelo.moverDerecha()})
+  keyboard.left().onPressDo({anzuelo.moverIzquierda()})
+  keyboard.space().onPressDo({anzuelo.soltar()})
+
+  game.whenCollideDo(anzuelo, {unPez => anzuelo.pescar(unPez)})
+  game.onTick(100, "moverPez", { anzuelo.moverPezAgarrado() })
+
 	game.start()
 }
