@@ -31,5 +31,60 @@ test "Al llegar arriba con un pez comun, suma 5 puntos" {
     anzuelo.subirAnzuelo()
     assert.equals(5, anzuelo.puntos())
 }
+
+}
+describe "Tests de Movimiento de Peces" {
+
+    test "El comun avanza una casilla hacia la derecha" {
+        game.width(10)
+        game.height(10)
+
+        const comun = new PezComun(
+            position = game.at(3, 3),
+            orientacion = "derecha"
+        )
+
+        comun.mover()
+
+        assert.equals(4, comun.position().x())
+    }
+
+    test "El comun avanza una casilla hacia la izquierda" {
+        game.width(10)
+        game.height(10)
+
+        const comun = new PezComun(
+            position = game.at(3, 3),
+            orientacion = "izquierda"
+        )
+
+        comun.mover()
+
+        assert.equals(2, comun.position().x())
+    }
+   test "El pez comun vuelve al inicio al llegar al borde derecho" {
+    game.width(10)
+
+    const pezComun = new PezComun(
+        position = game.at(9, 3),
+        orientacion = "derecha"
+    )
+
+    pezComun.mover()
+
+    assert.equals(0, pezComun.position().x())
 }
 
+test "El pez rapido vuelve al inicio despues de salir por la derecha" {
+    game.width(10)
+
+    const pezRapido = new PezRapido(
+        position = game.at(10, 3),
+        orientacion = "derecha"
+    )
+
+    pezRapido.mover()
+
+    assert.equals(0, pezRapido.position().x())
+}
+    }

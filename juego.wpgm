@@ -12,11 +12,19 @@ program NombreDeJuego {
 	game.addVisual(anzuelo)
 	game.addVisual(marcadorPuntos)
 
-	const pezDer = new PezRapido(position = game.at(0,2), orientacion = "derecha")
-	const pezIzq = new PezRapido(position = game.at(10,4), orientacion = "izquierda")
+	const pezComunDer = new PezComun(position = game.at(0, 1.randomUpTo(6)), orientacion = "derecha")
+	const pezComunIzq = new PezComun(position = game.at(9, 1.randomUpTo(6)), orientacion = "izquierda")
+
+	const pezDer = new PezRapido(position = game.at(0, 1.randomUpTo(6)), orientacion = "derecha")
+	const pezIzq = new PezRapido(position = game.at(0, 1.randomUpTo(6)), orientacion = "izquierda")
+	
 	game.addVisual(pezDer)
 	game.addVisual(pezIzq)
+	game.addVisual(pezComunDer)
+	game.addVisual(pezComunIzq)
+
 	game.onTick(100, "movimientPez", {pezDer.mover(); pezIzq.mover()})	//onTick ejecuta una accion de forma repetitiva cada "X" milisegundos
+	game.onTick(200, "movimientPez", {pezComunDer.mover(); pezComunIzq.mover()})
 
   keyboard.up().onPressDo({ anzuelo.subirAnzuelo() })
   keyboard.down().onPressDo({ anzuelo.bajarAnzuelo() })
