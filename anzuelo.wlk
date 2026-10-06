@@ -1,6 +1,6 @@
 import wollok.game.*
 object anzuelo {
-  var pezAgarrado = null
+  var property pezAgarrado = null
 
   //guardo los puntos en la siguiente variable
   var property puntos = 0
@@ -9,9 +9,14 @@ object anzuelo {
     
     if(pezAgarrado == null && unPez != pezAgarrado) {
         pezAgarrado = unPez
-    
+  
   }
   }
+  method resetear() {
+    puntos = 0
+    pezAgarrado = null
+  }
+  
 
   var property position = game.center() 
   method image() = "anzuelo.png"

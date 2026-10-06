@@ -3,15 +3,33 @@ import anzuelo.*
 
 describe "Tests de Pesca y Puntos"{
 
-  test "Al pescar un pez comun, el anzuelo suma 5 puntos"{
+
+  test "Al pescar un pez comun, el anzuelo lo agarra"{
     const pezComun = new PezComun(position = game.at(1, 1), orientacion = "derecha")
     anzuelo.pescar(pezComun)
-    assert.equals(5, anzuelo.puntos())
+    assert.equals(pezComun, anzuelo.pezAgarrado())
   }
-  test "Al pescar un pez rapido, el anzuelo suma 25 puntos"{
-    const pezRapido = new PezRapido(position = game.at(2, 2), orientacion = "izquierda")
+  test "Al soltar, el anzuelo no tiene pez agarrado"{
+    const pezRapido = new PezRapido(position = game.at(1, 1), orientacion = "derecha")
     anzuelo.pescar(pezRapido)
-    assert.equals(25, anzuelo.puntos())
+    anzuelo.soltar()
+    assert.equals(null, anzuelo.pezAgarrado())
   }
+
+  test "Al llegar arriba con un pez rapido, suma 25 puntos" {
+    const pezRapido = new PezRapido(position = game.at(1, 1), orientacion = "derecha")
+    anzuelo.pescar(pezRapido)
+    anzuelo.position(game.at(5, 6))
+    anzuelo.subirAnzuelo()
+    assert.equals(25, anzuelo.puntos())
+}
+
+test "Al llegar arriba con un pez comun, suma 5 puntos" {
+    const pezComun = new PezComun(position = game.at(1, 1), orientacion = "derecha")
+    anzuelo.pescar(pezComun)
+    anzuelo.position(game.at(5, 6))
+    anzuelo.subirAnzuelo()
+    assert.equals(5, anzuelo.puntos())
+}
 }
 
