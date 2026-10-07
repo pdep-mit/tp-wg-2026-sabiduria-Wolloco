@@ -1,9 +1,9 @@
 import wollok.game.*
 import anzuelo.*
 import peces.*
+import piedra.*
 
 program NombreDeJuego {
-	// TODO: Cambiar esto por lo que necesiten
 	game.title("Grupo: wolloco | Bajo el hielo")
 	game.height(10)
 	game.width(10)
@@ -13,7 +13,7 @@ program NombreDeJuego {
 	game.addVisual(marcadorPuntos)
 
 	const pezComunDer = new PezComun(position = game.at(0, 1.randomUpTo(6)), orientacion = "derecha")
-	const pezComunIzq = new PezComun(position = game.at(9, 1.randomUpTo(6)), orientacion = "izquierda")
+	const pezComunIzq = new PezComun(position = game.at(game.width() - 1, 1.randomUpTo(6)), orientacion = "izquierda")
 
 	const pezDer = new PezRapido(position = game.at(0, 1.randomUpTo(6)), orientacion = "derecha")
 	const pezIzq = new PezRapido(position = game.at(0, 1.randomUpTo(6)), orientacion = "izquierda")
@@ -22,17 +22,19 @@ program NombreDeJuego {
 	game.addVisual(pezIzq)
 	game.addVisual(pezComunDer)
 	game.addVisual(pezComunIzq)
+	game.addVisual(piedra)
 
-	game.onTick(100, "movimientPez", {pezDer.mover(); pezIzq.mover()})	//onTick ejecuta una accion de forma repetitiva cada "X" milisegundos
-	game.onTick(200, "movimientPez", {pezComunDer.mover(); pezComunIzq.mover()})
+	game.onTick(100, "movimientoPezRapido", {pezDer.mover(); pezIzq.mover()})	//onTick ejecuta un bloque de forma repetitiva cada x milisegundos
+	game.onTick(200, "movimientoPezComun", {pezComunDer.mover(); pezComunIzq.mover()})
+	game.onTick(250, "movimientoPiedra", { piedra.mover() })
 
   keyboard.up().onPressDo({ anzuelo.subirAnzuelo() })
   keyboard.down().onPressDo({ anzuelo.bajarAnzuelo() })
-  keyboard.right().onPressDo({anzuelo.moverDerecha()})
-  keyboard.left().onPressDo({anzuelo.moverIzquierda()})
   keyboard.space().onPressDo({anzuelo.soltar()})
 
-  game.whenCollideDo(anzuelo, {unPez => anzuelo.pescar(unPez)})
+  game.whenCollideDo(anzuelo, {elemento => elemento.interactuarCon(anzuelo)})
+  //polimorfica ya que cada elemento entiende interactuarCon el anzuelo y lo maneja a su propia forma
+
   game.onTick(100, "moverPez", { anzuelo.moverPezAgarrado() })
 
 	game.start()

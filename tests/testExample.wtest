@@ -1,8 +1,8 @@
 import peces.*
 import anzuelo.*
+import piedra.*
 
 describe "Tests de Pesca y Puntos"{
-
 
   test "Al pescar un pez comun, el anzuelo lo agarra"{
     const pezComun = new PezComun(position = game.at(1, 1), orientacion = "derecha")
@@ -20,7 +20,8 @@ describe "Tests de Pesca y Puntos"{
     const pezRapido = new PezRapido(position = game.at(1, 1), orientacion = "derecha")
     anzuelo.pescar(pezRapido)
     anzuelo.position(game.at(5, 6))
-    anzuelo.subirAnzuelo()
+    anzuelo.subirAnzuelo() //primero sube una unidad
+    anzuelo.subirAnzuelo() //en la maxima altura, suma puntaje
     assert.equals(25, anzuelo.puntos())
 }
 
@@ -28,7 +29,8 @@ test "Al llegar arriba con un pez comun, suma 5 puntos" {
     const pezComun = new PezComun(position = game.at(1, 1), orientacion = "derecha")
     anzuelo.pescar(pezComun)
     anzuelo.position(game.at(5, 6))
-    anzuelo.subirAnzuelo()
+    anzuelo.subirAnzuelo() //primero sube una unidad
+    anzuelo.subirAnzuelo() //en la maxima altura, suma puntaje
     assert.equals(5, anzuelo.puntos())
 }
 
@@ -66,7 +68,7 @@ describe "Tests de Movimiento de Peces" {
     game.width(10)
 
     const pezComun = new PezComun(
-        position = game.at(9, 3),
+        position = game.at(game.width() - 1, 3),
         orientacion = "derecha"
     )
 
@@ -88,3 +90,24 @@ test "El pez rapido vuelve al inicio despues de salir por la derecha" {
     assert.equals(0, pezRapido.position().x())
 }
     }
+
+
+describe "Tests de obstaculo" {
+
+    test "Al chocar con la piedra, el anzuelo suelta el pez" {
+
+        anzuelo.resetear()
+        const pez = new PezComun(position = game.at(3, 3), orientacion = "derecha")
+
+        anzuelo.pescar(pez)
+        piedra.interactuarCon(anzuelo)
+        assert.equals(null, anzuelo.pezAgarrado())
+    }
+
+    test "La piedra avanza una casilla hacia la derecha" {
+
+        piedra.position(game.at(3, 3))
+        piedra.mover()
+        assert.equals(4, piedra.position().x())
+    }
+}

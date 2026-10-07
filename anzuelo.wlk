@@ -18,7 +18,7 @@ object anzuelo {
   }
   
 
-  var property position = game.center() 
+  var property position = game.at(4,7) 
   method image() = "anzuelo.png"
 
   method subirAnzuelo(){
@@ -40,21 +40,10 @@ object anzuelo {
     }
   }
 
-  method moverDerecha(){
-    if (position.x()< game.width()-1){
-      position = position.right(1)
-    }
-  }
-
-  method moverIzquierda(){
-    if(position.x()>0){
-      position=position.left(1)
-    }
-  }
 
   method soltar() {
     if(pezAgarrado != null) {
-        pezAgarrado.position(game.at(0, 1.randomUpTo(5)))
+        pezAgarrado.position(game.at(0, 1.randomUpTo(6)))
         pezAgarrado = null
     }
 }
@@ -67,7 +56,7 @@ object anzuelo {
 }
 
 object marcadorPuntos {
-  method position() = game.at(0,9)
+  method position() = game.at(1,9)
   method text() = "Puntos: " + anzuelo.puntos().toString()
   method textColor() = "FFFFFF"
 }

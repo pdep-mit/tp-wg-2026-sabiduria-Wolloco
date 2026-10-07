@@ -22,7 +22,7 @@ class PezRapido {
   }
 
   method moverPezADerecha() {
-    if(position.x() > game.width() - 1) {
+    if(position.x() >= game.width() - 1) {
 		position = game.at(0, 1.randomUpTo(6))
 	} else {
         position = position.right(1)
@@ -36,6 +36,10 @@ class PezRapido {
         position = position.left(1)
     }	
   }
+
+  method interactuarCon(unAnzuelo) {
+    unAnzuelo.pescar(self)
+}
 }
 
 class PezComun {
@@ -78,5 +82,8 @@ class PezComun {
     }
 }
 
+method interactuarCon(unAnzuelo) {
+    unAnzuelo.pescar(self)
+}
 
 }
