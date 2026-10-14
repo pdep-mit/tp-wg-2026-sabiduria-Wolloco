@@ -8,15 +8,19 @@ program NombreDeJuego {
 	game.height(10)
 	game.width(10)
 	game.boardGround("fondo.jpg")
-
+	
 	game.addVisual(anzuelo)
 	game.addVisual(marcadorPuntos)
-
-	const pezDer = new PezRapido(position = game.at(0,2), orientacion = "derecha")
-	const pezIzq = new PezRapido(position = game.at(10,4), orientacion = "izquierda")
-	game.addVisual(pezDer)
-	game.addVisual(pezIzq)
-	game.onTick(100, "movimientPez", {pezDer.mover(); pezIzq.mover()})	//onTick ejecuta una accion de forma repetitiva cada "X" milisegundos
-
+	
+	const peces = [
+		new PezRapido(position = game.at(0, 2), orientacion = derecha),
+		new PezRapido(position = game.at(9, 4), orientacion = izquierda),
+		new PezComun(position = game.at(1, 6), orientacion = derecha),
+		new PezComun(position = game.at(8, 8), orientacion = izquierda)
+	]
+	
+	peces.forEach({ pez => game.addVisual(pez) })
+	
+	game.onTick(100, "movimientoPeces", { peces.forEach({ pez => pez.mover() }) })
 	game.start()
 }

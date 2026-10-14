@@ -1,48 +1,54 @@
 import wollok.game.*
-class PezRapido {
-  var property position
-  var property orientacion
 
-  method daPuntos() = 25
-
-  method image() {
-    if(orientacion == "derecha") {
-        return "pezRapidoDer.png"
+object derecha {
+  method imagen() = "Der.png"
+  
+  method siguientePosicion(posicionActual) {
+    if (posicionActual.x() > game.width() - 1) {
+      return game.at(0, posicionActual.y())
     } else {
-        return "pezRapidoIzq.png"
+      return posicionActual.right(1)
     }
-  }
-
-  method mover() {
-    if(orientacion == "derecha") {
-        self.moverPezADerecha()
-    } else {
-        self.moverPezAIzquierda()
-    }
-  }
-
-  method moverPezADerecha() {
-    if(position.x() > game.width() - 1) {
-		position = game.at(0, position.y())
-	} else {
-        position = position.right(1)
-    }
-  }
-
-  method moverPezAIzquierda() {
-    if(position.x() <= 0) {
-		position = game.at(game.width() - 1, position.y())
-	} else {
-        position = position.left(1)
-    }	
   }
 }
 
-class PezComun {
+object izquierda {
+  method imagen() = "Izq.png"
+  
+  method siguientePosicion(posicionActual) {
+    if (posicionActual.x() <= 0) {
+      return game.at(game.width() - 1, posicionActual.y())
+    } else {
+      return posicionActual.left(1)
+    }
+  }
+} 
 
+///CLASE PADRE
+
+class Pez {
   var property position
-  var property orientacion
+  var property orientacion //Guarda objeto izq o der
+  
+  method daPuntos()
+  
+  method nombreImagen()
+  
+  method image() = self.nombreImagen() + orientacion.imagen()
+  
+  method mover() {
+    position = orientacion.siguientePosicion(position)
+  }
+}
 
-  method daPuntos() = 5
+class PezRapido inherits Pez {
+  override method daPuntos() = 25
+  
+  override method nombreImagen() = "pezRapido"
+}
 
+class PezComun inherits Pez {
+  override method daPuntos() = 5
+  
+  override method nombreImagen() = "pezComun"
 }
