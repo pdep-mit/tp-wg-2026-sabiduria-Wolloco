@@ -1,6 +1,7 @@
 import wollok.game.*
 object anzuelo {
   var property pezAgarrado = null
+  var property vidas = 3 //el anzuelo es el que "muere" y empieza con tres vidas
 
   //guardo los puntos en la siguiente variable
   var property puntos = 0
@@ -45,6 +46,7 @@ object anzuelo {
     if(pezAgarrado != null) {
         pezAgarrado.position(game.at(0, 1.randomUpTo(6)))
         pezAgarrado = null
+        self.perderVida()
     }
 }
 
@@ -53,10 +55,23 @@ object anzuelo {
         pezAgarrado.position(position)
     }
   }
+
+  method perderVida(){
+    vidas = vidas - 1
+    if (vidas == 0){
+      game.stop()
+    }
+  }
 }
 
 object marcadorPuntos {
   method position() = game.at(1,9)
   method text() = "Puntos: " + anzuelo.puntos().toString()
   method textColor() = "FFFFFF"
+}
+
+object marcadorVidas{
+  method position() = game.at(8,9)
+  method text()= "Vidas: " + anzuelo.vidas().toString()
+  method textColor()= "FF0000"
 }

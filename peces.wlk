@@ -51,3 +51,12 @@ class PezComun inherits Pez {
   override method daPuntos() = 5
   override method nombreImagen() = "pezComun"
 }
+
+class PezVenenoso inherits Pez{
+  override method daPuntos() = 0
+  override method nombreImagen()= "pezVenenoso"
+
+  override method interactuarCon(unAnzuelo){
+    unAnzuelo.perderVida()
+  }
+}
