@@ -66,6 +66,7 @@ object anzuelo {
   method perderVida(){
     vidas = vidas - 1
     if (vidas == 0){
+      game.addVisual(pantallaGameOver)
       game.stop()
     }
   }
@@ -81,4 +82,10 @@ object marcadorVidas{
   method position() = game.at(8,9)
   method text()= "Vidas: " + anzuelo.vidas().toString()
   method textColor()= "FF0000"
+}
+
+object pantallaGameOver{
+  method position() = game.at(5,5)
+  method text() = "GAME OVER - Presiona R para reiniciar"
+  method textColor() = "FF0000"
 }
