@@ -28,6 +28,7 @@ object izquierda {
 class Pez {
   var property position
   var property orientacion //Guarda objeto izq o der
+  var property estaPescado = false 
   
   method daPuntos()
   
@@ -36,7 +37,9 @@ class Pez {
   method image() = self.nombreImagen() + orientacion.imagen()
   
   method mover() {
+    if(!estaPescado){
     position = orientacion.siguientePosicion(position)
+    }
   }
   
   method interactuarCon(unAnzuelo) {
@@ -58,5 +61,8 @@ class PezVenenoso inherits Pez{
 
   override method interactuarCon(unAnzuelo){
     unAnzuelo.perderVida()
+    self.position(game.at(0.randomUpTo(game.width()-1), 1.randomUpTo(5)))
   }
+
+  
 }

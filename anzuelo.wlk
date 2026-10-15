@@ -2,7 +2,7 @@ import wollok.game.*
 object anzuelo {
   var property pezAgarrado = null
   var property vidas = 3 //el anzuelo es el que "muere" y empieza con tres vidas
-
+  var property pecesPescados = []
   //guardo los puntos en la siguiente variable
   var property puntos = 0
 
@@ -16,6 +16,8 @@ object anzuelo {
   method resetear() {
     puntos = 0
     pezAgarrado = null
+    vidas = 3
+    pecesPescados=[]
   }
   
 
@@ -29,7 +31,12 @@ object anzuelo {
       if(pezAgarrado != null){
         puntos = puntos + pezAgarrado.daPuntos()
         game.say(self, "¡Puntos:" + puntos.toString() + "!")
-        game.removeVisual(pezAgarrado)
+        if(game.hasVisual(pezAgarrado)){
+          pezAgarrado.estaPescado(true)
+          pezAgarrado.position(game.at(pecesPescados.size(),8))
+          pecesPescados.add(pezAgarrado)
+        }
+        
         pezAgarrado=null
       }
     }

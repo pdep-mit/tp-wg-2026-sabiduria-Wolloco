@@ -45,6 +45,20 @@ describe "Tests de Pesca y Puntos" {
     anzuelo.subirAnzuelo() //en la maxima altura, suma puntaje
     assert.equals(5, anzuelo.puntos())
   }
+
+  test "Al perder todas las vidas el anzuelo queda con 0 vidas" {
+    anzuelo.resetear()
+    anzuelo.perderVida()
+    anzuelo.perderVida()
+    anzuelo.perderVida()
+    assert.equals(0, anzuelo.vidas())
+}
+
+test "Al perder una vida, el anzuelo tiene una vida menos" {
+    anzuelo.resetear()
+    anzuelo.perderVida()
+    assert.equals(2, anzuelo.vidas())
+}
 }
 
 describe "Tests de Movimiento de Peces" {
@@ -102,4 +116,13 @@ describe "Tests de obstaculo" {
     piedra.mover()
     assert.equals(4, piedra.position().x())
   }
+
+  test "Al pescar un pez venenoso, el anzuelo pierde una vida" {
+    anzuelo.resetear()
+    const pezVenenoso = new PezVenenoso(position = game.at(1, 1), orientacion = derecha)
+    const vidasAntes = anzuelo.vidas()
+    pezVenenoso.interactuarCon(anzuelo)
+    assert.equals(vidasAntes - 1, anzuelo.vidas())
 }
+}
+
