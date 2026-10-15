@@ -1,9 +1,9 @@
 import wollok.game.*
 import anzuelo.*
 import peces.*
+import piedra.*
 
 program NombreDeJuego {
-	// TODO: Cambiar esto por lo que necesiten
 	game.title("Grupo: wolloco | Bajo el hielo")
 	game.height(10)
 	game.width(10)
@@ -11,16 +11,46 @@ program NombreDeJuego {
 	
 	game.addVisual(anzuelo)
 	game.addVisual(marcadorPuntos)
+	game.addVisual(piedra)
 	
-	const peces = [
-		new PezRapido(position = game.at(0, 2), orientacion = derecha),
-		new PezRapido(position = game.at(9, 4), orientacion = izquierda),
-		new PezComun(position = game.at(1, 6), orientacion = derecha),
-		new PezComun(position = game.at(8, 8), orientacion = izquierda)
+	
+	const pecesComunes = [
+		new PezComun(position = game.at(0, 1.randomUpTo(6)), orientacion = derecha),
+		new PezComun(
+			position = game.at(game.width() - 1, 1.randomUpTo(6)),
+			orientacion = izquierda
+		)
 	]
 	
-	peces.forEach({ pez => game.addVisual(pez) })
+	const pecesRapidos = [
+		new PezRapido(position = game.at(0, 1.randomUpTo(6)), orientacion = derecha),
+		new PezRapido(
+			position = game.at(game.width() - 1, 1.randomUpTo(6)),
+			orientacion = izquierda
+		)
+	]
 	
-	game.onTick(100, "movimientoPeces", { peces.forEach({ pez => pez.mover() }) })
+	pecesComunes.forEach({ pez => game.addVisual(pez) })
+	pecesRapidos.forEach({ pez => game.addVisual(pez) })
+	
+	game.onTick(
+		100,
+		"movimientoPezRapido",
+		{ pecesRapidos.forEach({ pez => pez.mover() }) }
+	)
+	game.onTick(
+		200,
+		"movimientoPezComun",
+		{ pecesComunes.forEach({ pez => pez.mover() }) }
+	)
+	game.onTick(250, "movimientoPiedra", { piedra.mover() })
+	game.onTick(100, "moverPezAgarrado", { anzuelo.moverPezAgarrado() })
+	
+	keyboard.up().onPressDo({ anzuelo.subirAnzuelo() })
+	keyboard.down().onPressDo({ anzuelo.bajarAnzuelo() })
+	keyboard.space().onPressDo({ anzuelo.soltar() })
+	
+	game.whenCollideDo(anzuelo, { elemento => elemento.interactuarCon(anzuelo) })
+	//polimorfica ya que cada elemento entiende interactuarCon el anzuelo y lo maneja a su propia forma
 	game.start()
 }

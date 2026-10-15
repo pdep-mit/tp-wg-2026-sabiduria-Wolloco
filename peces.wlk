@@ -4,14 +4,13 @@ object derecha {
   method imagen() = "Der.png"
   
   method siguientePosicion(posicionActual) {
-    if (posicionActual.x() > game.width() - 1) {
+    if (posicionActual.x() >= (game.width() - 1)) {
       return game.at(0, posicionActual.y())
     } else {
       return posicionActual.right(1)
     }
   }
 }
-
 object izquierda {
   method imagen() = "Izq.png"
   
@@ -39,16 +38,16 @@ class Pez {
   method mover() {
     position = orientacion.siguientePosicion(position)
   }
+  
+  method interactuarCon(unAnzuelo) {
+    unAnzuelo.pescar(self)
+  }
 }
-
 class PezRapido inherits Pez {
   override method daPuntos() = 25
-  
   override method nombreImagen() = "pezRapido"
 }
-
 class PezComun inherits Pez {
   override method daPuntos() = 5
-  
   override method nombreImagen() = "pezComun"
 }
