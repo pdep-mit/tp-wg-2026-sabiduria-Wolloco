@@ -126,3 +126,60 @@ describe "Tests de obstaculo" {
 }
 }
 
+describe "Tests Resumen partida" {
+  test "Al pescar un pez comun y subirlo, se agrega a la colección de peces pescados" {
+    const pezComun = new PezComun(position = game.at(1, 1), orientacion = derecha)
+    game.addVisual(pezComun)
+    
+    anzuelo.pescar(pezComun)
+    anzuelo.position(game.at(5, 7))
+    anzuelo.subirAnzuelo() //Sube a la superficie y registra el pez en la colección
+    
+    assert.equals(1, anzuelo.pecesPescados().size())
+    assert.that(anzuelo.pecesPescados().contains(pezComun))
+  }
+
+  test "El conteo por especie distingue correctamente entre especies" {
+    const pezComun1 = new PezComun(position = game.at(1, 1), orientacion = derecha)
+    const pezComun2 = new PezComun(position = game.at(2, 2), orientacion = derecha)
+    const pezRapido = new PezRapido(position = game.at(3, 3), orientacion = derecha)
+
+    game.addVisual(pezComun1)
+    game.addVisual(pezComun2)
+    game.addVisual(pezRapido)
+
+    //Pescamos 2 peces comunes
+    anzuelo.pescar(pezComun1)
+    anzuelo.position(game.at(5, 7))
+    anzuelo.subirAnzuelo()
+
+    anzuelo.pescar(pezComun2)
+    anzuelo.position(game.at(5, 7))
+    anzuelo.subirAnzuelo()
+
+    //Pescamos 1 pez rápido
+    anzuelo.pescar(pezRapido)
+    anzuelo.position(game.at(5, 7))
+    anzuelo.subirAnzuelo()
+
+    assert.equals(2, anzuelo.cantidadPecesComunes())
+    assert.equals(1, anzuelo.cantidadPecesRapidos())
+    assert.equals(3, anzuelo.pecesPescados().size())
+  }
+
+  test "Al resetear, la colección de peces pescados vuelve a estar vacía" {
+    const pezComun = new PezComun(position = game.at(1, 1), orientacion = derecha)
+    game.addVisual(pezComun)
+
+    anzuelo.pescar(pezComun)
+    anzuelo.position(game.at(5, 7))
+    anzuelo.subirAnzuelo()
+
+    anzuelo.resetear()
+
+    assert.equals(0, anzuelo.pecesPescados().size())
+    assert.equals(0, anzuelo.cantidadPecesComunes())
+    assert.equals(0, anzuelo.cantidadPecesRapidos())
+  }
+}
+

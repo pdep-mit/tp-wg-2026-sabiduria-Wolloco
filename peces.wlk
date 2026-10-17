@@ -31,8 +31,8 @@ class Pez {
   var property estaPescado = false 
   
   method daPuntos()
-  
   method nombreImagen()
+  method nombreEspecie() = "Pez"
   
   method image() = self.nombreImagen() + orientacion.imagen()
   
@@ -49,10 +49,12 @@ class Pez {
 class PezRapido inherits Pez {
   override method daPuntos() = 25
   override method nombreImagen() = "pezRapido"
+  override method nombreEspecie() = "Pez Rapido"
 }
 class PezComun inherits Pez {
   override method daPuntos() = 5
   override method nombreImagen() = "pezComun"
+  override method nombreEspecie() = "Pez Comun"
 }
 
 class PezVenenoso inherits Pez{

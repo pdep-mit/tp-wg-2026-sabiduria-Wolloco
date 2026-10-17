@@ -11,13 +11,14 @@ object anzuelo {
     if(pezAgarrado == null && unPez != pezAgarrado) {
         pezAgarrado = unPez
   
+    }
   }
-  }
+
   method resetear() {
     puntos = 0
     pezAgarrado = null
     vidas = 3
-    pecesPescados=[]
+    pecesPescados.clear()
   }
   
 
@@ -70,6 +71,13 @@ object anzuelo {
       game.stop()
     }
   }
+
+  method cantidadDeEspecie(nombreEspecie) {
+    return pecesPescados.count({ pez => pez.nombreEspecie() == nombreEspecie })
+  }
+
+  method cantidadPecesComunes() = self.cantidadDeEspecie("Pez Comun")
+  method cantidadPecesRapidos() = self.cantidadDeEspecie("Pez Rapido")
 }
 
 object marcadorPuntos {
@@ -86,6 +94,6 @@ object marcadorVidas{
 
 object pantallaGameOver{
   method position() = game.at(5,5)
-  method text() = "GAME OVER - Presiona R para reiniciar"
+  method text() = "GAME OVER\n" + "Peces Atrapados: \n" + "Pez Comun x" + anzuelo.cantidadPecesComunes().toString() + "\n" + "Pez Rapido x" + anzuelo.cantidadPecesRapidos().toString() + "\n" + "Presiona R para reiniciar"
   method textColor() = "FF0000"
 }
