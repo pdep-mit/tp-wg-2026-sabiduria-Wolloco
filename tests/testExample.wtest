@@ -2,6 +2,7 @@ import peces.*
 import anzuelo.*
 import piedra.*
 import cardumen.*
+import hielo.*
 
 describe "Tests de Pesca y Puntos" {
   test "Al pescar un pez comun, el anzuelo lo agarra" {
@@ -146,6 +147,12 @@ test "La piedra quita exactamente dos vidas por choque" {
   assert.equals(1, anzuelo.vidas())
 
   anzuelo.resetear()
+}
+
+test "Al interactuar con el hielo, el anzuelo queda congelado"{
+  anzuelo.resetear()
+  hielo.interactuarCon(anzuelo)
+  assert.that(anzuelo.congelado())
 }
 
 }

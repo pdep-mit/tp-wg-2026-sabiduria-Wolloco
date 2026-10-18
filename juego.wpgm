@@ -3,6 +3,7 @@ import anzuelo.*
 import peces.*
 import piedra.*
 import cardumen.*
+import hielo.*
 
 program NombreDeJuego {
   game.title("Grupo: wolloco | Bajo el hielo")
@@ -34,6 +35,10 @@ program NombreDeJuego {
   game.addVisual(anzuelo)
   game.addVisual(marcadorPuntos)
   game.addVisual(marcadorVidas)
+
+  //hielo
+  var proximoHielo= 20
+  var hieloActual= null
 
 
   //movim de peces comunes
@@ -113,18 +118,29 @@ program NombreDeJuego {
     }
   })
 
+  //movimiento del hielo
+  game.onTick(400, "movimientoHielo", {
+    if (!anzuelo.partidaTerminada() && game.hasVisual(hielo)) {
+        if(hielo.position().x() >= game.width() - 1) {
+            game.removeVisual(hielo)
+        } else {
+            hielo.mover()
+        }
+    }
+})
+
 
 
   //CONTROLES PARA JUGAR
 
   keyboard.up().onPressDo({
-    if (!anzuelo.partidaTerminada()) {
+    if (!anzuelo.partidaTerminada() && !anzuelo.congelado()) {
       anzuelo.subirAnzuelo()
     }
   })
 
   keyboard.down().onPressDo({
-    if (!anzuelo.partidaTerminada()) {
+    if (!anzuelo.partidaTerminada() && !anzuelo.congelado()) {
       anzuelo.bajarAnzuelo()
     }
   })
@@ -202,6 +218,7 @@ program NombreDeJuego {
       }
   })
 
+ 
   //reloj y apariciones por tandas
 
   game.onTick(1000, "relojPartida", {
@@ -237,7 +254,7 @@ program NombreDeJuego {
           proximoPezVenenoso = segundosPartida + 10
         }
       }
-
+    
 
       //contar los peces que estan nadando, sin contar los pescados ni enganchados
       var pecesEnAgua = 0
@@ -268,6 +285,21 @@ program NombreDeJuego {
       })
 
       pecesEnAgua = pecesEnAgua + cardumenEnAgua
+
+      //generar un hielo
+      if(hieloActual == null && 
+      pecesEnAgua < 3 && 
+      segundosPartida >= proximoHielo){
+        hielo.position(game.at(0, 1.randomUpTo(6)))
+        game.addVisual(hielo)
+        hieloActual = hielo
+      }
+
+      //detectar cuando termina el hielo
+      if(hieloActual !=null && !game.hasVisual(hieloActual)){
+        hieloActual = null
+        proximoHielo= segundosPartida + 15
+      }
 
       //APARICIONES DEL CARDUMEN: 1era vez a los 45 seg, a partir de ahi cada 15 seg minimo y espera que no haya otros peces ni piedra
 
@@ -358,6 +390,8 @@ program NombreDeJuego {
       }
     }
   })
+
+
 
   game.start()
 }

@@ -8,6 +8,7 @@ object anzuelo {
   //guardo los puntos en la siguiente variable
   var property puntos = 0
   var property partidaTerminada = false
+  var property congelado = false
 
  method pescar(unPez) {
   if (pezAgarrado == null && !unPez.estaPescado()) {
@@ -56,13 +57,13 @@ method pescarCardumen(unRey, pecesDisponibles) {
   method image() = "anzuelo.png"
 
 method subirAnzuelo() {
+  if(!congelado){
   if (position.y() < 7) {
     position = position.up(1)
   } else {
     if (pezAgarrado != null) {
 
       self.registrarPezPescado(pezAgarrado)
-
       pecesAcompaniantes.forEach({ pez =>
         self.registrarPezPescado(pez)
       })
@@ -73,10 +74,11 @@ method subirAnzuelo() {
       pecesAcompaniantes.clear()
     }
   }
+  }
 }
 
   method bajarAnzuelo(){
-    if (position.y()>0){
+    if (!congelado && position.y()>0){
       position= position.down(1)
     }
   }
@@ -140,8 +142,8 @@ method registrarPezPescado(unPez) {
 
   if (game.hasVisual(unPez)) {
     unPez.estaPescado(true)
-    unPez.position(game.at(pecesPescados.size(), 8))
     pecesPescados.add(unPez)
+    game.removeVisual(unPez)
   }
 }
 
@@ -189,6 +191,16 @@ method perderVidas(cantidad) {
   method cantidadPecesComunes() = self.cantidadDeEspecie("Pez Comun")
   method cantidadPecesRapidos() = self.cantidadDeEspecie("Pez Rapido")
   method cantidadPecesCardumen() = self.cantidadDeEspecie("Pez Cardumen")
+
+method congelar() {
+    congelado = true
+    game.addVisual(efectoHielo)
+    game.schedule(2000, { 
+      congelado = false
+      game.removeVisual(efectoHielo) 
+      })
+}
+
 }
 
 object marcadorPuntos {
@@ -220,4 +232,9 @@ object pantallaGameOver{
 object efectoDanio {
   method position() = game.at(0, 0)
   method image() = "destelloRojo.png"
+}
+
+object efectoHielo{
+  method position()= game.at(0,0)
+  method image()= "destellohielo.png"
 }
