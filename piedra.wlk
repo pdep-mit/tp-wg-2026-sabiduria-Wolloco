@@ -14,7 +14,8 @@ object piedra {
 }
 
 method interactuarCon(unAnzuelo) {
-    unAnzuelo.soltar()
+  unAnzuelo.soltar()
+  unAnzuelo.perderVidas(2)
 }
 
 }

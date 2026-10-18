@@ -2,66 +2,362 @@ import wollok.game.*
 import anzuelo.*
 import peces.*
 import piedra.*
+import cardumen.*
 
 program NombreDeJuego {
-	game.title("Grupo: wolloco | Bajo el hielo")
-	game.height(10)
-	game.width(10)
-	game.boardGround("fondo.jpg")
-	
-	game.addVisual(anzuelo)
-	game.addVisual(marcadorPuntos)
-	game.addVisual(piedra)
+  game.title("Grupo: wolloco | Bajo el hielo")
+  game.height(10)
+  game.width(10)
+  game.boardGround("fondo.jpg")
+
+  //reloj de la partida
+  var segundosPartida = 0
+
+  //programacion de las apariciones
+  var proximoPezComun = 5
+  var proximoPezRapido = 12
+  var proximoPezVenenoso = 16
+  var proximaPiedra = 29
+  var proximaPasadaCardumen = 45
+
+  //peces que estan realizando una pasada
+  var pezComunActual = null
+  var pezRapidoActual = null
+  var pezVenenosoActual = null
+
+  //colecciones de peces creados a lo largo de la partida
+  const pecesComunes = []
+  const pecesRapidos = []
+  const pezVenenoso = []
+
+  // elementos visibles solamente desde el comienzo
+  game.addVisual(anzuelo)
+  game.addVisual(marcadorPuntos)
   game.addVisual(marcadorVidas)
 
-	
-	
-	const pecesComunes = [
-		new PezComun(position = game.at(0, 1.randomUpTo(6)), orientacion = derecha),
-		new PezComun(
-			position = game.at(game.width() - 1, 1.randomUpTo(6)),
-			orientacion = izquierda
-		)
-	]
-	
-	const pecesRapidos = [
-		new PezRapido(position = game.at(0, 1.randomUpTo(6)), orientacion = derecha),
-		new PezRapido(
-			position = game.at(game.width() - 1, 1.randomUpTo(6)),
-			orientacion = izquierda
-		)
-	]
 
-  const pezVenenoso = [
-    new PezVenenoso(position = game.at(0, 1.randomUpTo(5)), orientacion = derecha),
-    new PezVenenoso(position = game.at(game.width() - 1, 3.randomUpTo(6)), orientacion = izquierda)
-  ]
+  //movim de peces comunes
 
-  pezVenenoso.forEach({ pez => game.addVisual(pez) })
-	game.onTick(180, "movimientoPezVenenoso", { pezVenenoso.forEach({ pez => pez.mover() }) })
+  game.onTick(600, "movimientoPezComun", {
+    if (!anzuelo.partidaTerminada()) {
+      pecesComunes.forEach({ pez =>
+        if (game.hasVisual(pez) && !pez.estaPescado()) {
+          if (pez.position().x() >= game.width() - 1) {
+            game.removeVisual(pez)
+          } else {
+            pez.mover()
+          }
+        }
+      })
+    }
+  })
 
-	pecesComunes.forEach({ pez => game.addVisual(pez) })
-	pecesRapidos.forEach({ pez => game.addVisual(pez) })
-	
-	game.onTick(
-		100,
-		"movimientoPezRapido",
-		{ pecesRapidos.forEach({ pez => pez.mover() }) }
-	)
-	game.onTick(
-		220,
-		"movimientoPezComun",
-		{ pecesComunes.forEach({ pez => pez.mover() }) }
-	)
+  //movimiento de peces rapidos
 
-	game.onTick(250, "movimientoPiedra", { piedra.mover() })
-	game.onTick(100, "moverPezAgarrado", { anzuelo.moverPezAgarrado() })
-	
-	keyboard.up().onPressDo({ anzuelo.subirAnzuelo() })
-	keyboard.down().onPressDo({ anzuelo.bajarAnzuelo() })
-	keyboard.space().onPressDo({ anzuelo.soltar() })
-	
-	game.whenCollideDo(anzuelo, { elemento => elemento.interactuarCon(anzuelo) })
-	//polimorfica ya que cada elemento entiende interactuarCon el anzuelo y lo maneja a su propia forma
-	game.start()
+  game.onTick(200, "movimientoPezRapido", {
+    if (!anzuelo.partidaTerminada()) {
+      pecesRapidos.forEach({ pez =>
+        if (game.hasVisual(pez) && !pez.estaPescado()) {
+          if (pez.position().x() <= 0) {
+            game.removeVisual(pez)
+          } else {
+            pez.mover()
+          }
+        }
+      })
+    }
+  })
+
+  //movimiento peces venenosos
+
+  game.onTick(500, "movimientoPezVenenoso", {
+    if (!anzuelo.partidaTerminada()) {
+      pezVenenoso.forEach({ pez =>
+        if (game.hasVisual(pez) && !pez.estaPescado()) {
+          if (pez.position().x() >= game.width() - 1) {
+            game.removeVisual(pez)
+          } else {
+            pez.mover()
+          }
+        }
+      })
+    }
+  })
+
+  //movimiento piedra
+
+  game.onTick(650, "movimientoPiedra", {
+    if (!anzuelo.partidaTerminada() && game.hasVisual(piedra)) {
+      if (piedra.position().x() >= game.width() - 1) {
+        game.removeVisual(piedra)
+        proximaPiedra = segundosPartida + 10
+      } else {
+        piedra.mover()
+      }
+    }
+  })
+
+  //movimiento de peces al ser enganchados
+
+  game.onTick(100, "moverPezAgarrado", {
+    if (!anzuelo.partidaTerminada()) {
+      anzuelo.moverPezAgarrado()
+    }
+  })
+
+  //movimiento del cardumen
+
+  game.onTick(600, "movimientoCardumen", {
+    if (!anzuelo.partidaTerminada() && cardumen.aparecio()) {
+      cardumen.mover()
+    }
+  })
+
+
+
+  //CONTROLES PARA JUGAR
+
+  keyboard.up().onPressDo({
+    if (!anzuelo.partidaTerminada()) {
+      anzuelo.subirAnzuelo()
+    }
+  })
+
+  keyboard.down().onPressDo({
+    if (!anzuelo.partidaTerminada()) {
+      anzuelo.bajarAnzuelo()
+    }
+  })
+
+  keyboard.space().onPressDo({
+    if (!anzuelo.partidaTerminada()) {
+      anzuelo.soltar()
+    }
+  })
+
+  //REINICIO DE PARTIDA
+
+  keyboard.r().onPressDo({
+    if (anzuelo.partidaTerminada()) {
+
+      //elimina a los peces comunes de la partida anterior
+      pecesComunes.forEach({ pez =>
+        if (game.hasVisual(pez)) {
+          game.removeVisual(pez)
+        }
+      })
+      pecesComunes.clear()
+
+      //elimina peces rapidos anteriores
+      pecesRapidos.forEach({ pez =>
+        if (game.hasVisual(pez)) {
+          game.removeVisual(pez)
+        }
+      })
+      pecesRapidos.clear()
+
+      //elimina peces venenosos anteriores
+      pezVenenoso.forEach({ pez =>
+        if (game.hasVisual(pez)) {
+          game.removeVisual(pez)
+        }
+      })
+      pezVenenoso.clear()
+
+
+      //reinicia la piedra 
+      if (game.hasVisual(piedra)) {
+        game.removeVisual(piedra)
+      }
+      piedra.position(game.at(0, 3))
+
+
+      //reinicia el cardumen
+      cardumen.reiniciar()
+
+      //renicia el reloj y el sistema de apariciones
+      segundosPartida = 0
+
+      proximoPezComun = 5
+      proximoPezRapido = 12
+      proximoPezVenenoso = 16
+      proximaPiedra = 29
+      proximaPasadaCardumen = 45
+
+      pezComunActual = null
+      pezRapidoActual = null
+      pezVenenosoActual = null
+
+      //reinicia anzuelo, puntos, vidas y pantalla
+      anzuelo.resetear()
+    }
+  })
+
+  //COLISIONES (polimorficas ya que cada elemento entiende interactuarCon y maneja su propia interaccion con el anzuelo)
+
+  game.whenCollideDo(anzuelo, {
+    elemento =>
+      if (!anzuelo.partidaTerminada()) {
+        elemento.interactuarCon(anzuelo)
+      }
+  })
+
+  //reloj y apariciones por tandas
+
+  game.onTick(1000, "relojPartida", {
+    if (!anzuelo.partidaTerminada()) {
+
+      segundosPartida = segundosPartida + 1
+
+      //detectar cuando termina un pez comun
+      if (pezComunActual != null) {
+        if (!game.hasVisual(pezComunActual) ||
+            anzuelo.pecesPescados().contains(pezComunActual)) {
+
+          pezComunActual = null
+          proximoPezComun = segundosPartida + 4
+        }
+      }
+
+      //detectar cuando termina un pez rapido
+      if (pezRapidoActual != null) {
+        if (!game.hasVisual(pezRapidoActual) ||
+            anzuelo.pecesPescados().contains(pezRapidoActual)) {
+
+          pezRapidoActual = null
+          proximoPezRapido = segundosPartida + 12
+        }
+      }
+
+      //detectar cuando termina un pez venenoso
+      if (pezVenenosoActual != null) {
+        if (!game.hasVisual(pezVenenosoActual)) {
+
+          pezVenenosoActual = null
+          proximoPezVenenoso = segundosPartida + 10
+        }
+      }
+
+
+      //contar los peces que estan nadando, sin contar los pescados ni enganchados
+      var pecesEnAgua = 0
+
+      if (pezComunActual != null &&
+          game.hasVisual(pezComunActual) &&
+          !pezComunActual.estaPescado()) {
+        pecesEnAgua = pecesEnAgua + 1
+      }
+
+      if (pezRapidoActual != null &&
+          game.hasVisual(pezRapidoActual) &&
+          !pezRapidoActual.estaPescado()) {
+        pecesEnAgua = pecesEnAgua + 1
+      }
+
+      if (pezVenenosoActual != null &&
+          game.hasVisual(pezVenenosoActual) &&
+          !pezVenenosoActual.estaPescado()) {
+        pecesEnAgua = pecesEnAgua + 1
+      }
+
+
+      //contar los integrantes actuales de un cardumen
+
+      var cardumenEnAgua = cardumen.peces().count({ pez =>
+        game.hasVisual(pez) && !pez.estaPescado()
+      })
+
+      pecesEnAgua = pecesEnAgua + cardumenEnAgua
+
+      //APARICIONES DEL CARDUMEN: 1era vez a los 45 seg, a partir de ahi cada 15 seg minimo y espera que no haya otros peces ni piedra
+
+      if (segundosPartida >= proximaPasadaCardumen &&
+          pecesEnAgua == 0 &&
+          !game.hasVisual(piedra)) {
+
+        cardumen.aparecer()
+        proximaPasadaCardumen = segundosPartida + 15
+
+        cardumenEnAgua = cardumen.peces().count({ pez =>
+          game.hasVisual(pez) && !pez.estaPescado()
+        })
+
+        pecesEnAgua = pecesEnAgua + cardumenEnAgua
+      }
+
+      //APARICIONES DE PECES NORMALES: max 3 peces nadando al mismo tiempo, el cardumen tiene prioridad frente al resto al aparecer
+
+      if (cardumenEnAgua == 0 &&
+          segundosPartida < proximaPasadaCardumen) {
+
+        //generar un pez comun
+        if (pezComunActual == null &&
+            pecesEnAgua < 3 &&
+            segundosPartida >= proximoPezComun) {
+
+          const nuevoPez = new PezComun(
+            position = game.at(0, 1.randomUpTo(6)),
+            orientacion = derecha
+          )
+
+          pecesComunes.add(nuevoPez)
+          game.addVisual(nuevoPez)
+          pezComunActual = nuevoPez
+
+          pecesEnAgua = pecesEnAgua + 1
+        }
+
+
+        //generar un pez rapido
+        if (pezRapidoActual == null &&
+            pecesEnAgua < 3 &&
+            segundosPartida >= proximoPezRapido) {
+
+          const nuevoPez = new PezRapido(
+            position = game.at(
+              game.width() - 1,
+              1.randomUpTo(6)
+            ),
+            orientacion = izquierda
+          )
+
+          pecesRapidos.add(nuevoPez)
+          game.addVisual(nuevoPez)
+          pezRapidoActual = nuevoPez
+
+          pecesEnAgua = pecesEnAgua + 1
+        }
+
+
+        //generar un pez venenoso
+        if (pezVenenosoActual == null &&
+            pecesEnAgua < 3 &&
+            segundosPartida >= proximoPezVenenoso) {
+
+          const nuevoPez = new PezVenenoso(
+            position = game.at(0, 1.randomUpTo(5)),
+            orientacion = derecha
+          )
+
+          pezVenenoso.add(nuevoPez)
+          game.addVisual(nuevoPez)
+          pezVenenosoActual = nuevoPez
+
+          pecesEnAgua = pecesEnAgua + 1
+        }
+		
+
+        //hacer aparecer la piedra y evitar que coincida con el pez venenoso
+        if (!game.hasVisual(piedra) &&
+            pezVenenosoActual == null &&
+            segundosPartida >= proximaPiedra) {
+
+          piedra.position(game.at(0, 1.randomUpTo(6)))
+          game.addVisual(piedra)
+        }
+      }
+    }
+  })
+
+  game.start()
 }

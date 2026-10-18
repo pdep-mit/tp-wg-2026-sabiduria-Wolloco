@@ -1,6 +1,7 @@
 import peces.*
 import anzuelo.*
 import piedra.*
+import cardumen.*
 
 describe "Tests de Pesca y Puntos" {
   test "Al pescar un pez comun, el anzuelo lo agarra" {
@@ -46,12 +47,18 @@ describe "Tests de Pesca y Puntos" {
     assert.equals(5, anzuelo.puntos())
   }
 
-  test "Al perder todas las vidas el anzuelo queda con 0 vidas" {
-    anzuelo.resetear()
-    anzuelo.perderVida()
-    anzuelo.perderVida()
-    anzuelo.perderVida()
-    assert.equals(0, anzuelo.vidas())
+  test "Al perder la ultima vida termina la partida" {
+  anzuelo.resetear()
+
+  // Simulamos que al jugador solo le queda una vida
+  anzuelo.vidas(1)
+
+  anzuelo.perderVida()
+
+  assert.equals(0, anzuelo.vidas())
+  assert.that(anzuelo.partidaTerminada())
+
+  anzuelo.resetear()
 }
 
 test "Al perder una vida, el anzuelo tiene una vida menos" {
@@ -124,6 +131,23 @@ describe "Tests de obstaculo" {
     pezVenenoso.interactuarCon(anzuelo)
     assert.equals(vidasAntes - 1, anzuelo.vidas())
 }
+
+
+test "La piedra quita exactamente dos vidas por choque" {
+  anzuelo.resetear()
+
+  piedra.interactuarCon(anzuelo)
+
+  assert.equals(1, anzuelo.vidas())
+
+  // La misma colision no debe descontar otra vez
+  piedra.interactuarCon(anzuelo)
+
+  assert.equals(1, anzuelo.vidas())
+
+  anzuelo.resetear()
+}
+
 }
 
 describe "Tests Resumen partida" {
@@ -183,3 +207,317 @@ describe "Tests Resumen partida" {
   }
 }
 
+describe "Tests Peces del Cardumen" {
+  test "Un pez del cardumen vale 20 puntos" {
+    const pez = new PezCardumen(
+      position = game.at(2, 3),
+      orientacion = derecha
+    )
+
+    assert.equals(20, pez.daPuntos())
+  }
+
+  test "El rey tambien vale 20 puntos" {
+    const rey = new PezRey(
+      position = game.at(2, 3),
+      orientacion = derecha
+    )
+
+    assert.equals(20, rey.daPuntos())
+  }
+
+
+  test "Un pez del cardumen se mueve como uno comun" {
+    game.width(10)
+
+    const pez = new PezCardumen(
+      position = game.at(2, 3),
+      orientacion = derecha
+    )
+
+    pez.mover()
+
+    assert.equals(3, pez.position().x())
+  }
+}
+
+
+describe "Tests Cardumen" {
+  test "El cardumen tiene dos seguidores y un rey" {
+    assert.equals(3, cardumen.peces().size())
+
+    assert.equals(2, cardumen.peces().count({
+      pez => pez.nombreImagen() == "pezCardumen"
+    }))
+
+    assert.equals(1, cardumen.peces().count({
+      pez => pez.nombreImagen() == "pezRey"
+    }))
+  }
+
+  test "El cardumen avanza junto manteniendo su formacion" {
+  game.width(10)
+  game.height(10)
+
+  const peces = cardumen.peces()
+
+  peces.get(0).position(game.at(0, 4))
+  peces.get(1).position(game.at(2, 4))
+  peces.get(2).position(game.at(4, 4))
+
+  cardumen.reiniciar()
+  cardumen.aparecer()
+  cardumen.mover()
+
+  assert.equals(1, peces.get(0).position().x())
+  assert.equals(3, peces.get(1).position().x())
+  assert.equals(5, peces.get(2).position().x())
+
+  assert.that(peces.all({
+    pez => pez.position().y() == 4
+  }))
+
+  cardumen.reiniciar()
+}
+
+
+test "El cardumen vuelve a aparecer sin recuperar peces pescados" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const seguidor = cardumen.peces().get(0)
+  const rey = cardumen.peces().get(1)
+  const otroSeguidor = cardumen.peces().get(2)
+
+  anzuelo.pescar(seguidor)
+  anzuelo.position(game.at(4, 7))
+  anzuelo.subirAnzuelo()
+
+  rey.position(game.at(9, 4))
+  otroSeguidor.position(game.at(9, 4))
+
+  cardumen.mover()
+
+  assert.that(!game.hasVisual(rey))
+  assert.that(!game.hasVisual(otroSeguidor))
+
+  cardumen.aparecer()
+
+  assert.that(game.hasVisual(rey))
+  assert.that(game.hasVisual(otroSeguidor))
+  assert.that(seguidor.estaPescado())
+  assert.equals(2, cardumen.pecesDisponibles().size())
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+
+test "Al pescar un seguidor quedan dos peces disponibles" {
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const seguidor = cardumen.peces().get(0)
+
+  seguidor.estaPescado(true)
+
+  assert.equals(2, cardumen.pecesDisponibles().size())
+
+  cardumen.reiniciar()
+}
+
+test "Al pescar al rey se capturan los tres integrantes" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const rey = cardumen.peces().get(1)
+
+  anzuelo.pescarCardumen(rey, cardumen.pecesDisponibles())
+
+  assert.equals(rey, anzuelo.pezAgarrado())
+  assert.equals(2, anzuelo.pecesAcompaniantes().size())
+
+  assert.that(cardumen.peces().all({
+    pez => pez.estaPescado()
+  }))
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+
+test "Al tocar al rey se engancha todo el cardumen" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const rey = cardumen.peces().get(1)
+
+  rey.interactuarCon(anzuelo)
+
+  assert.equals(rey, anzuelo.pezAgarrado())
+  assert.equals(2, anzuelo.pecesAcompaniantes().size())
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+
+test "Los tres peces siguen al anzuelo" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const rey = cardumen.peces().get(1)
+
+  rey.interactuarCon(anzuelo)
+
+  anzuelo.position(game.at(4, 5))
+  anzuelo.moverPezAgarrado()
+
+assert.equals(game.at(4, 5), rey.position())
+
+assert.equals(
+  game.at(4, 4),
+  anzuelo.pecesAcompaniantes().get(0).position()
+)
+
+assert.equals(
+  game.at(4, 3),
+  anzuelo.pecesAcompaniantes().get(1).position()
+)
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+test "Al subir el cardumen completo suma 60 puntos" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const rey = cardumen.peces().get(1)
+
+  rey.interactuarCon(anzuelo)
+
+  anzuelo.position(game.at(4, 7))
+  anzuelo.subirAnzuelo()
+
+  assert.equals(60, anzuelo.puntos())
+  assert.equals(3, anzuelo.pecesPescados().size())
+  assert.equals(null, anzuelo.pezAgarrado())
+  assert.equals(0, anzuelo.pecesAcompaniantes().size())
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+test "Soltar el cardumen libera a todos sin perder vidas" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const rey = cardumen.peces().get(1)
+
+  rey.interactuarCon(anzuelo)
+
+  const vidasAntes = anzuelo.vidas()
+
+  anzuelo.soltar()
+
+  assert.equals(null, anzuelo.pezAgarrado())
+  assert.equals(0, anzuelo.pecesAcompaniantes().size())
+  assert.equals(vidasAntes, anzuelo.vidas())
+
+  assert.that(cardumen.peces().all({
+    pez => !pez.estaPescado()
+  }))
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+test "El rey captura solamente los peces restantes" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const seguidor = cardumen.peces().get(0)
+  const rey = cardumen.peces().get(1)
+
+  // Primero pescamos un seguidor
+  anzuelo.pescar(seguidor)
+  anzuelo.position(game.at(4, 7))
+  anzuelo.subirAnzuelo()
+
+  assert.equals(20, anzuelo.puntos())
+
+  // Luego pescamos al rey
+  rey.interactuarCon(anzuelo)
+
+  assert.equals(1, anzuelo.pecesAcompaniantes().size())
+
+  anzuelo.subirAnzuelo()
+
+  // El rey y el seguidor restante suman 40 puntos
+  assert.equals(60, anzuelo.puntos())
+  assert.equals(3, anzuelo.pecesPescados().size())
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+
+test "El resumen cuenta los tres peces del cardumen" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const rey = cardumen.peces().get(1)
+
+  rey.interactuarCon(anzuelo)
+  anzuelo.position(game.at(4, 7))
+  anzuelo.subirAnzuelo()
+
+  assert.equals(3, anzuelo.cantidadPecesCardumen())
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+test "El rey solo se pesca por 20 puntos" {
+  anzuelo.resetear()
+  cardumen.reiniciar()
+  cardumen.aparecer()
+
+  const seguidor1 = cardumen.peces().get(0)
+  const rey = cardumen.peces().get(1)
+  const seguidor2 = cardumen.peces().get(2)
+
+  // Pescamos los dos seguidores individualmente
+  anzuelo.pescar(seguidor1)
+  anzuelo.position(game.at(4, 7))
+  anzuelo.subirAnzuelo()
+
+  anzuelo.pescar(seguidor2)
+  anzuelo.subirAnzuelo()
+
+  assert.equals(40, anzuelo.puntos())
+
+  // Ahora solamente queda el rey
+  rey.interactuarCon(anzuelo)
+
+  assert.equals(0, anzuelo.pecesAcompaniantes().size())
+
+  anzuelo.subirAnzuelo()
+
+  assert.equals(60, anzuelo.puntos())
+  assert.equals(3, anzuelo.cantidadPecesCardumen())
+
+  cardumen.reiniciar()
+  anzuelo.resetear()
+}
+
+}
