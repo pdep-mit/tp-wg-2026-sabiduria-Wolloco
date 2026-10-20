@@ -191,6 +191,7 @@ method perderVidas(cantidad) {
   method cantidadPecesComunes() = self.cantidadDeEspecie("Pez Comun")
   method cantidadPecesRapidos() = self.cantidadDeEspecie("Pez Rapido")
   method cantidadPecesCardumen() = self.cantidadDeEspecie("Pez Cardumen")
+  method cantidadPecesEspeciales() = self.cantidadDeEspecie("Pez Especial")
 
 method congelar() {
     congelado = true
@@ -200,6 +201,10 @@ method congelar() {
       game.removeVisual(efectoHielo) 
       })
 }
+
+method pescoTodasLasEspecies() {
+    return self.cantidadPecesComunes() > 0 && self.cantidadPecesRapidos() > 0 && self.cantidadPecesCardumen() > 0
+  }
 
 }
 
@@ -224,6 +229,7 @@ object pantallaGameOver{
   "Pez Comun x" + anzuelo.cantidadPecesComunes().toString() + "\n" +
   "Pez Rapido x" + anzuelo.cantidadPecesRapidos().toString() + "\n" +
   "Pez Cardumen x" + anzuelo.cantidadPecesCardumen().toString() + "\n" +
+  "Pez Especial x" + anzuelo.cantidadPecesEspeciales().toString() + "\n" +
   "Presiona R para reiniciar"
 
   method textColor() = "FF0000"

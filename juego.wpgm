@@ -20,16 +20,19 @@ program NombreDeJuego {
   var proximoPezVenenoso = 16
   var proximaPiedra = 29
   var proximaPasadaCardumen = 45
+  var proximoPezEspecial = 0
 
   //peces que estan realizando una pasada
   var pezComunActual = null
   var pezRapidoActual = null
   var pezVenenosoActual = null
+  var pezEspecialActual = null
 
   //colecciones de peces creados a lo largo de la partida
   const pecesComunes = []
   const pecesRapidos = []
   const pezVenenoso = []
+  const pecesEspeciales = []
 
   // elementos visibles solamente desde el comienzo
   game.addVisual(anzuelo)
@@ -129,6 +132,23 @@ program NombreDeJuego {
     }
 })
 
+  //movimiento pez especial
+  game.onTick(300, "movimientoPezEspecial", {
+    if (!anzuelo.partidaTerminada()) {
+      pecesEspeciales.copy().forEach({ pez =>
+        if (game.hasVisual(pez) && !pez.estaPescado()) {
+          if (pez.position().x() >= game.width() - 1) {
+            game.removeVisual(pez)
+            pecesEspeciales.remove(pez)
+          } else {
+            pez.mover()
+          }
+        }
+      })
+    }
+  })
+
+
 
 
   //CONTROLES PARA JUGAR
@@ -180,6 +200,13 @@ program NombreDeJuego {
       })
       pezVenenoso.clear()
 
+      //elimina peces especiales anteriores
+      pecesEspeciales.forEach({ pez =>
+        if (game.hasVisual(pez)) {
+          game.removeVisual(pez)
+        }
+      })
+      pecesEspeciales.clear()
 
       //reinicia la piedra 
       if (game.hasVisual(piedra)) {
@@ -203,6 +230,7 @@ program NombreDeJuego {
       pezComunActual = null
       pezRapidoActual = null
       pezVenenosoActual = null
+      pezEspecialActual = null
 
       //reinicia anzuelo, puntos, vidas y pantalla
       anzuelo.resetear()
@@ -387,6 +415,30 @@ program NombreDeJuego {
           piedra.position(game.at(0, 1.randomUpTo(6)))
           game.addVisual(piedra)
         }
+      }
+      
+      // CONTROL Y APARICIÓN DEL PEZ ESPECIAL
+      if (pezEspecialActual != null) {
+        if (!game.hasVisual(pezEspecialActual) || anzuelo.pecesPescados().contains(pezEspecialActual)) {
+          pezEspecialActual = null
+          proximoPezEspecial = segundosPartida + 20 // Espera 20 segs para reaparecer
+        }
+      }
+
+      if (pezEspecialActual != null &&
+        game.hasVisual(pezEspecialActual) &&
+        !pezEspecialActual.estaPescado()) {
+        pecesEnAgua = pecesEnAgua + 1
+      }
+
+      if (pezEspecialActual == null && pecesEnAgua < 3 && anzuelo.pescoTodasLasEspecies() && segundosPartida >= proximoPezEspecial) {
+       const nuevoPez = new PezEspecial(position = game.at(0, 1.randomUpTo(6)), orientacion = derecha)
+
+        pecesEspeciales.add(nuevoPez)
+        game.addVisual(nuevoPez)
+        pezEspecialActual = nuevoPez
+
+        pecesEnAgua = pecesEnAgua + 1
       }
     }
   })

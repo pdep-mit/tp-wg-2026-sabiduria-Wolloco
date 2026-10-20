@@ -81,6 +81,10 @@ class PezVenenoso inherits Pez{
     unAnzuelo.perderVida()
     self.position(game.at(0.randomUpTo(game.width()-1), 1.randomUpTo(5)))
   }
+}
 
-  
+class PezEspecial inherits Pez{
+  override method daPuntos() = 50
+  override method nombreImagen() = "pezEspecial"
+  override method nombreEspecie() = "Pez Especial"
 }
