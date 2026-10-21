@@ -19,4 +19,4 @@ se usan listas para manejar los peces en agua, los peces pescados y el cardumen.
 
 # Diagramas
 
-*Incluír al menos un diagrama para comunicar su solución*
+![Diagrama del juego](assets/DiagramaTP.jpg)
