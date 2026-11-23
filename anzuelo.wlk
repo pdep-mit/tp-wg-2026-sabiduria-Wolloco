@@ -1,42 +1,32 @@
 import wollok.game.*
 object anzuelo {
-  var property pezAgarrado = null
-  var property pecesAcompaniantes = []
-  var property invulnerable = false
+  var property estadoPesca = sinPesca
+  var property estado = estadoNormal
   var property vidas = 3 //el anzuelo es el que "muere" y empieza con tres vidas
   var property pecesPescados = []
   //guardo los puntos en la siguiente variable
   var property puntos = 0
-  var property partidaTerminada = false
-  var property congelado = false
 
- method pescar(unPez) {
-  if (pezAgarrado == null && !unPez.estaPescado()) {
-    pezAgarrado = unPez
-    unPez.estaPescado(true)
+  method partidaTerminada() = estado.partidaTerminada()
+  method congelado() = estado.congelado()
+  method invulnerable() = estado.invulnerable()
+
+  method pezAgarrado() = estadoPesca.pezAgarrado()
+  method pecesAcompaniantes() = estadoPesca.pecesAcompaniantes()
+
+  method pescar(unPez) {
+    estadoPesca.pescar(self, unPez)
   }
-}
 
-method pescarCardumen(unRey, pecesDisponibles) {
-  if (pezAgarrado == null && !unRey.estaPescado()) {
-    self.pescar(unRey)
-
-    pecesAcompaniantes = pecesDisponibles.filter({
-      pez => pez != unRey
-    })
-
-    pecesAcompaniantes.forEach({
-      pez => pez.estaPescado(true)
-    })
+  method pescarCardumen(unRey, pecesDisponibles) {
+    estadoPesca.pescarCardumen(self, unRey, pecesDisponibles)
   }
-}
 
   method resetear() {
   puntos = 0
-  pezAgarrado = null
-  pecesAcompaniantes.clear()
+  estadoPesca = sinPesca
   vidas = 3
-  invulnerable = false
+  estado = estadoNormal
   position = game.at(4, 7)
   pecesPescados.clear()
 
@@ -45,96 +35,52 @@ method pescarCardumen(unRey, pecesDisponibles) {
   }
 
   if (game.hasVisual(efectoDanio)) {
-  game.removeVisual(efectoDanio)
-}
+    game.removeVisual(efectoDanio)
+  }
+
+  if (game.hasVisual(efectoHielo)) {
+    game.removeVisual(efectoHielo)
+  }
 
   game.boardGround("fondo.jpg")
-  partidaTerminada = false
 }
   
 
   var property position = game.at(4,7) 
   method image() = "anzuelo.png"
 
-method subirAnzuelo() {
-  if(!congelado){
-  if (position.y() < 7) {
-    position = position.up(1)
-  } else {
-    if (pezAgarrado != null) {
 
-      self.registrarPezPescado(pezAgarrado)
-      pecesAcompaniantes.forEach({ pez =>
-        self.registrarPezPescado(pez)
-      })
 
-      game.say(self, "¡Puntos: " + puntos.toString() + "!")
+ method subirAnzuelo() {
+    estado.subirAnzuelo(self)
+  }
 
-      pezAgarrado = null
-      pecesAcompaniantes.clear()
+  method bajarAnzuelo() {
+    estado.bajarAnzuelo(self)
+  }
+
+  method moverArriba() {
+    if (position.y() < 7) {
+      position = position.up(1)
+    } else {
+      estadoPesca.llegarASuperficie(self)
     }
   }
-  }
-}
 
-  method bajarAnzuelo(){
-    if (!congelado && position.y()>0){
-      position= position.down(1)
+  method moverAbajo() {
+    if (position.y() > 0) {
+      position = position.down(1)
     }
   }
 
 
 method soltar() {
-  if (pezAgarrado != null) {
-    const fila = 1.randomUpTo(6)
-
-    if (pecesAcompaniantes.size() > 0) {
-      // Devolvemos el cardumen al agua
-      pezAgarrado.position(game.at(2, fila))
-      pecesAcompaniantes.get(0).position(game.at(0, fila))
-
-      if (pecesAcompaniantes.size() > 1) {
-        pecesAcompaniantes.get(1).position(game.at(4, fila))
-      }
-    } else {
-      // Pesca individual
-      pezAgarrado.position(game.at(0, fila))
-    }
-
-    pezAgarrado.estaPescado(false)
-
-    pecesAcompaniantes.forEach({ pez =>
-      pez.estaPescado(false)
-    })
-
-    pezAgarrado = null
-    pecesAcompaniantes.clear()
+    estadoPesca.soltar(self)
   }
-}
 
-
-method moverPezAgarrado() {
-  if (pezAgarrado != null) {
-
-    if (pecesAcompaniantes.size() > 0 && position.y() < 2) {
-      pezAgarrado.position(game.at(position.x(), 2))
-    } else {
-      pezAgarrado.position(position)
-    }
-
-    if (pecesAcompaniantes.size() > 0) {
-      pecesAcompaniantes.get(0).position(
-        pezAgarrado.position().down(1)
-      )
-    }
-
-    if (pecesAcompaniantes.size() > 1) {
-      pecesAcompaniantes.get(1).position(
-        pezAgarrado.position().down(2)
-      )
-    }
+  method moverPezAgarrado() {
+    estadoPesca.moverPezAgarrado(self)
   }
-}
 
 //sacar o dejar¿ (ver que pasa al pescar un pez y como aparece ya pescado)
 method registrarPezPescado(unPez) {
@@ -153,11 +99,11 @@ method perderVida() {
   self.perderVidas(1)
 }
 
-method perderVidas(cantidad) {
-  if (!partidaTerminada && !invulnerable) {
+ method perderVidas(cantidad) {
+    estado.perderVidas(self, cantidad)
+  }
 
-    invulnerable = true
-
+  method recibirDanio(cantidad) {
     if (vidas <= cantidad) {
       vidas = 0
     } else {
@@ -169,19 +115,21 @@ method perderVidas(cantidad) {
       game.addVisual(efectoDanio)
     }
 
-    game.schedule(1000, {
-      if (game.hasVisual(efectoDanio)) {
-        game.removeVisual(efectoDanio)
-      }
-      invulnerable = false
-    })
-
     if (vidas == 0) {
-      partidaTerminada = true
+      estado = estadoGameOver
       game.addVisual(pantallaGameOver)
+    } else {
+      estado = estadoInvulnerable
+      game.schedule(1000, {
+        if (game.hasVisual(efectoDanio)) {
+          game.removeVisual(efectoDanio)
+        }
+        if (estado == estadoInvulnerable) {
+          estado = estadoNormal
+        }
+      })
     }
   }
-}
 
 
   method cantidadDeEspecie(nombreEspecie) {
@@ -194,19 +142,206 @@ method perderVidas(cantidad) {
   method cantidadPecesEspeciales() = self.cantidadDeEspecie("Pez Especial")
 
 method congelar() {
-    congelado = true
-    game.addVisual(efectoHielo)
-    game.schedule(2000, { 
-      congelado = false
-      game.removeVisual(efectoHielo) 
-      })
-}
+    estado.congelar(self)
+  }
+
+  method aplicarCongelamiento() {
+    estado = estadoCongelado
+    if (!game.hasVisual(efectoHielo)) {
+      game.addVisual(efectoHielo)
+    }
+    game.schedule(2000, {
+      if (game.hasVisual(efectoHielo)) {
+        game.removeVisual(efectoHielo)
+      }
+      if (estado == estadoCongelado) {
+        estado = estadoNormal
+      }
+    })
+  }
 
 method pescoTodasLasEspecies() {
     return self.cantidadPecesComunes() > 0 && self.cantidadPecesRapidos() > 0 && self.cantidadPecesCardumen() > 0
   }
 
 }
+
+
+object sinPesca {
+  method pezAgarrado() = null
+  method pecesAcompaniantes() = []
+
+  method pescar(unAnzuelo, unPez) {
+    if (!unPez.estaPescado()) {
+      unPez.estaPescado(true)
+      unAnzuelo.estadoPesca(new PescaIndividual(pezAgarrado = unPez))
+    }
+  }
+
+  method pescarCardumen(unAnzuelo, unRey, pecesDisponibles) {
+    if (!unRey.estaPescado()) {
+      unRey.estaPescado(true)
+      const acompaniantes = pecesDisponibles.filter({ pez => pez != unRey })
+      acompaniantes.forEach({ pez => pez.estaPescado(true) })
+      unAnzuelo.estadoPesca(new PescaCardumen(pezAgarrado = unRey, pecesAcompaniantes = acompaniantes))
+    }
+  }
+
+  method llegarASuperficie(unAnzuelo) { }
+  method soltar(unAnzuelo) { }
+  method moverPezAgarrado(unAnzuelo) { }
+}
+
+class PescaIndividual {
+  const property pezAgarrado
+
+  method pecesAcompaniantes() = []
+
+  method pescar(unAnzuelo, unPez) { }
+  method pescarCardumen(unAnzuelo, unRey, pecesDisponibles) { }
+
+  method llegarASuperficie(unAnzuelo) {
+    unAnzuelo.registrarPezPescado(pezAgarrado)
+    game.say(unAnzuelo, "¡Puntos: " + unAnzuelo.puntos().toString() + "!")
+    unAnzuelo.estadoPesca(sinPesca)
+  }
+
+  method soltar(unAnzuelo) {
+    const fila = 1.randomUpTo(6)
+    pezAgarrado.position(game.at(0, fila))
+    pezAgarrado.estaPescado(false)
+    unAnzuelo.estadoPesca(sinPesca)
+  }
+
+  method moverPezAgarrado(unAnzuelo) {
+    pezAgarrado.position(unAnzuelo.position())
+  }
+}
+
+class PescaCardumen inherits PescaIndividual {
+  const property pecesAcompaniantes = []
+
+  override method llegarASuperficie(unAnzuelo) {
+    unAnzuelo.registrarPezPescado(pezAgarrado)
+    pecesAcompaniantes.forEach({ pez =>
+      unAnzuelo.registrarPezPescado(pez)
+    })
+    game.say(unAnzuelo, "¡Puntos: " + unAnzuelo.puntos().toString() + "!")
+    unAnzuelo.estadoPesca(sinPesca)
+  }
+
+  override method soltar(unAnzuelo) {
+    const fila = 1.randomUpTo(6)
+
+    if (pecesAcompaniantes.size() > 0) {
+      pezAgarrado.position(game.at(2, fila))
+      pecesAcompaniantes.get(0).position(game.at(0, fila))
+
+      if (pecesAcompaniantes.size() > 1) {
+        pecesAcompaniantes.get(1).position(game.at(4, fila))
+      }
+    } else {
+      pezAgarrado.position(game.at(0, fila))
+    }
+
+    pezAgarrado.estaPescado(false)
+    pecesAcompaniantes.forEach({ pez =>
+      pez.estaPescado(false)
+    })
+    unAnzuelo.estadoPesca(sinPesca)
+  }
+
+  override method moverPezAgarrado(unAnzuelo) {
+    if (pecesAcompaniantes.size() > 0 && unAnzuelo.position().y() < 2) {
+      pezAgarrado.position(game.at(unAnzuelo.position().x(), 2))
+    } else {
+      super(unAnzuelo)
+    }
+
+    if (pecesAcompaniantes.size() > 0) {
+      pecesAcompaniantes.get(0).position(
+        pezAgarrado.position().down(1)
+      )
+    }
+
+    if (pecesAcompaniantes.size() > 1) {
+      pecesAcompaniantes.get(1).position(
+        pezAgarrado.position().down(2)
+      )
+    }
+  }
+}
+
+
+
+object estadoNormal {
+  method partidaTerminada() = false
+  method congelado() = false
+  method invulnerable() = false
+
+  method subirAnzuelo(unAnzuelo) {
+    unAnzuelo.moverArriba()
+  }
+
+  method bajarAnzuelo(unAnzuelo) {
+    unAnzuelo.moverAbajo()
+  }
+
+  method perderVidas(unAnzuelo, cantidad) {
+    unAnzuelo.recibirDanio(cantidad)
+  }
+
+  method congelar(unAnzuelo) {
+    unAnzuelo.aplicarCongelamiento()
+  }
+}
+
+object estadoCongelado {
+  method partidaTerminada() = false
+  method congelado() = true
+  method invulnerable() = false
+
+  method subirAnzuelo(unAnzuelo) { }
+  method bajarAnzuelo(unAnzuelo) { }
+
+  method perderVidas(unAnzuelo, cantidad) {
+    if (game.hasVisual(efectoHielo)) {
+      game.removeVisual(efectoHielo)
+    }
+    unAnzuelo.recibirDanio(cantidad)
+  }
+
+  method congelar(unAnzuelo) { }
+}
+
+object estadoInvulnerable {
+  method partidaTerminada() = false
+  method congelado() = false
+  method invulnerable() = true
+
+  method subirAnzuelo(unAnzuelo) {
+    unAnzuelo.moverArriba()
+  }
+
+  method bajarAnzuelo(unAnzuelo) {
+    unAnzuelo.moverAbajo()
+  }
+
+  method perderVidas(unAnzuelo, cantidad) { }
+  method congelar(unAnzuelo) { }
+}
+
+object estadoGameOver {
+  method partidaTerminada() = true
+  method congelado() = false
+  method invulnerable() = false
+
+  method subirAnzuelo(unAnzuelo) { }
+  method bajarAnzuelo(unAnzuelo) { }
+  method perderVidas(unAnzuelo, cantidad) { }
+  method congelar(unAnzuelo) { }
+}
+
 
 object marcadorPuntos {
   method position() = game.at(1,9)
