@@ -51,7 +51,7 @@ describe "Tests de Pesca y Puntos" {
   test "Al perder la ultima vida termina la partida" {
   anzuelo.resetear()
 
-  // Simulamos que al jugador solo le queda una vida
+  //para simular que al jugador solo le queda una vida
   anzuelo.vidas(1)
 
   anzuelo.perderVida()
@@ -141,7 +141,6 @@ test "La piedra quita exactamente dos vidas por choque" {
 
   assert.equals(1, anzuelo.vidas())
 
-  // La misma colision no debe descontar otra vez
   piedra.interactuarCon(anzuelo)
 
   assert.equals(1, anzuelo.vidas())
@@ -164,7 +163,7 @@ describe "Tests Resumen partida" {
     
     anzuelo.pescar(pezComun)
     anzuelo.position(game.at(5, 7))
-    anzuelo.subirAnzuelo() //Sube a la superficie y registra el pez en la colección
+    anzuelo.subirAnzuelo() 
     
     assert.equals(1, anzuelo.pecesPescados().size())
     assert.that(anzuelo.pecesPescados().contains(pezComun))
@@ -454,21 +453,21 @@ test "El rey captura solamente los peces restantes" {
   const seguidor = cardumen.peces().get(0)
   const rey = cardumen.peces().get(1)
 
-  // Primero pescamos un seguidor
+  //1ero se pesca un seguidor
   anzuelo.pescar(seguidor)
   anzuelo.position(game.at(4, 7))
   anzuelo.subirAnzuelo()
 
   assert.equals(20, anzuelo.puntos())
 
-  // Luego pescamos al rey
+  //2do se pesca al rey
   rey.interactuarCon(anzuelo)
 
   assert.equals(1, anzuelo.pecesAcompaniantes().size())
 
   anzuelo.subirAnzuelo()
 
-  // El rey y el seguidor restante suman 40 puntos
+  //el rey y el seguidor restante suman 40 puntos
   assert.equals(60, anzuelo.puntos())
   assert.equals(3, anzuelo.pecesPescados().size())
 
@@ -503,7 +502,7 @@ test "El rey solo se pesca por 20 puntos" {
   const rey = cardumen.peces().get(1)
   const seguidor2 = cardumen.peces().get(2)
 
-  // Pescamos los dos seguidores individualmente
+  //se pescan los dos seguidores individualmente
   anzuelo.pescar(seguidor1)
   anzuelo.position(game.at(4, 7))
   anzuelo.subirAnzuelo()
@@ -513,7 +512,7 @@ test "El rey solo se pesca por 20 puntos" {
 
   assert.equals(40, anzuelo.puntos())
 
-  // Ahora solamente queda el rey
+  //queda solo el rey
   rey.interactuarCon(anzuelo)
 
   assert.equals(0, anzuelo.pecesAcompaniantes().size())
@@ -527,4 +526,48 @@ test "El rey solo se pesca por 20 puntos" {
   anzuelo.resetear()
 }
 
+}
+
+
+
+describe "Tests de Estados del Anzuelo" {
+  test "Teniendo un pez agarrado no engancha otro pez no danino" {
+    anzuelo.resetear()
+    const pez1 = new PezComun(position = game.at(2, 2), orientacion = derecha)
+    const pez2 = new PezRapido(position = game.at(2, 2), orientacion = derecha)
+
+    anzuelo.pescar(pez1)
+    anzuelo.pescar(pez2)
+
+    assert.equals(pez1, anzuelo.pezAgarrado())
+    assert.that(!pez2.estaPescado())
+    anzuelo.resetear()
+  }
+
+  test "Estando congelado el anzuelo no sube ni baja" {
+    anzuelo.resetear()
+    anzuelo.position(game.at(4, 4))
+    anzuelo.congelar()
+
+    anzuelo.subirAnzuelo()
+    assert.equals(4, anzuelo.position().y())
+
+    anzuelo.bajarAnzuelo()
+    assert.equals(4, anzuelo.position().y())
+
+    anzuelo.resetear()
+  }
+
+  test "Estando invulnerable no pierde vidas ni se congela" {
+    anzuelo.resetear()
+    anzuelo.perderVida() //pasa a 2 vidas y al estado invulnerable
+
+    anzuelo.perderVidas(2)
+    anzuelo.congelar()
+
+    assert.equals(2, anzuelo.vidas())
+    assert.that(anzuelo.invulnerable())
+    assert.that(!anzuelo.congelado())
+    anzuelo.resetear()
+  }
 }

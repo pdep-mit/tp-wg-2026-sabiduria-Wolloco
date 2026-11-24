@@ -4,7 +4,6 @@ object anzuelo {
   var property estado = estadoNormal
   var property vidas = 3 //el anzuelo es el que "muere" y empieza con tres vidas
   var property pecesPescados = []
-  //guardo los puntos en la siguiente variable
   var property puntos = 0
 
   method partidaTerminada() = estado.partidaTerminada()
@@ -82,7 +81,6 @@ method soltar() {
     estadoPesca.moverPezAgarrado(self)
   }
 
-//sacar o dejar¿ (ver que pasa al pescar un pez y como aparece ya pescado)
 method registrarPezPescado(unPez) {
   puntos = puntos + unPez.daPuntos()
 
@@ -103,32 +101,8 @@ method perderVida() {
     estado.perderVidas(self, cantidad)
   }
 
-  method recibirDanio(cantidad) {
-    if (vidas <= cantidad) {
-      vidas = 0
-    } else {
-      vidas = vidas - cantidad
-    }
-
-    // Destello rojo e inmunidad durante 1 segundo
-    if (!game.hasVisual(efectoDanio)) {
-      game.addVisual(efectoDanio)
-    }
-
-    if (vidas == 0) {
-      estado = estadoGameOver
-      game.addVisual(pantallaGameOver)
-    } else {
-      estado = estadoInvulnerable
-      game.schedule(1000, {
-        if (game.hasVisual(efectoDanio)) {
-          game.removeVisual(efectoDanio)
-        }
-        if (estado == estadoInvulnerable) {
-          estado = estadoNormal
-        }
-      })
-    }
+  method restarVidas(cantidad) {
+    vidas = (vidas - cantidad).max(0)
   }
 
 
@@ -145,20 +119,6 @@ method congelar() {
     estado.congelar(self)
   }
 
-  method aplicarCongelamiento() {
-    estado = estadoCongelado
-    if (!game.hasVisual(efectoHielo)) {
-      game.addVisual(efectoHielo)
-    }
-    game.schedule(2000, {
-      if (game.hasVisual(efectoHielo)) {
-        game.removeVisual(efectoHielo)
-      }
-      if (estado == estadoCongelado) {
-        estado = estadoNormal
-      }
-    })
-  }
 
 method pescoTodasLasEspecies() {
     return self.cantidadPecesComunes() > 0 && self.cantidadPecesRapidos() > 0 && self.cantidadPecesCardumen() > 0
@@ -196,20 +156,27 @@ class PescaIndividual {
   const property pezAgarrado
 
   method pecesAcompaniantes() = []
+  method pecesAgarrados() = [pezAgarrado]
 
   method pescar(unAnzuelo, unPez) { }
   method pescarCardumen(unAnzuelo, unRey, pecesDisponibles) { }
 
   method llegarASuperficie(unAnzuelo) {
-    unAnzuelo.registrarPezPescado(pezAgarrado)
+    self.pecesAgarrados().forEach({ pez =>unAnzuelo.registrarPezPescado(pez)})
     game.say(unAnzuelo, "¡Puntos: " + unAnzuelo.puntos().toString() + "!")
     unAnzuelo.estadoPesca(sinPesca)
   }
 
-  method soltar(unAnzuelo) {
+  method reposicionarEnAgua() {
     const fila = 1.randomUpTo(6)
     pezAgarrado.position(game.at(0, fila))
-    pezAgarrado.estaPescado(false)
+  }
+
+  method soltar(unAnzuelo) {
+    self.reposicionarEnAgua()
+    self.pecesAgarrados().forEach({ pez =>
+      pez.estaPescado(false)
+    })
     unAnzuelo.estadoPesca(sinPesca)
   }
 
@@ -221,16 +188,9 @@ class PescaIndividual {
 class PescaCardumen inherits PescaIndividual {
   const property pecesAcompaniantes = []
 
-  override method llegarASuperficie(unAnzuelo) {
-    unAnzuelo.registrarPezPescado(pezAgarrado)
-    pecesAcompaniantes.forEach({ pez =>
-      unAnzuelo.registrarPezPescado(pez)
-    })
-    game.say(unAnzuelo, "¡Puntos: " + unAnzuelo.puntos().toString() + "!")
-    unAnzuelo.estadoPesca(sinPesca)
-  }
+  override method pecesAgarrados() = [pezAgarrado] + pecesAcompaniantes
 
-  override method soltar(unAnzuelo) {
+  override method reposicionarEnAgua() {
     const fila = 1.randomUpTo(6)
 
     if (pecesAcompaniantes.size() > 0) {
@@ -241,14 +201,8 @@ class PescaCardumen inherits PescaIndividual {
         pecesAcompaniantes.get(1).position(game.at(4, fila))
       }
     } else {
-      pezAgarrado.position(game.at(0, fila))
+      super()
     }
-
-    pezAgarrado.estaPescado(false)
-    pecesAcompaniantes.forEach({ pez =>
-      pez.estaPescado(false)
-    })
-    unAnzuelo.estadoPesca(sinPesca)
   }
 
   override method moverPezAgarrado(unAnzuelo) {
@@ -288,15 +242,60 @@ object estadoNormal {
   }
 
   method perderVidas(unAnzuelo, cantidad) {
-    unAnzuelo.recibirDanio(cantidad)
+    unAnzuelo.restarVidas(cantidad)
+
+    if (!game.hasVisual(efectoDanio)) {
+      game.addVisual(efectoDanio)
+    }
+
+    if (unAnzuelo.vidas() == 0) {
+      unAnzuelo.estado(estadoGameOver)
+      game.addVisual(pantallaGameOver)
+    } else {
+      unAnzuelo.estado(estadoInvulnerable)
+      game.schedule(1000, {
+        if (game.hasVisual(efectoDanio)) {
+          game.removeVisual(efectoDanio)
+        }
+        unAnzuelo.estado().terminarInvulnerabilidad(unAnzuelo)
+      })
+    }
   }
 
   method congelar(unAnzuelo) {
-    unAnzuelo.aplicarCongelamiento()
+    unAnzuelo.estado(estadoCongelado)
+    const idCongelamiento = estadoCongelado.iniciar()
+    if (!game.hasVisual(efectoHielo)) {
+      game.addVisual(efectoHielo)
+    }
+    game.schedule(2000, {
+      estadoCongelado.finalizarTimer(unAnzuelo, idCongelamiento)
+    })
   }
+
+  method terminarInvulnerabilidad(unAnzuelo) { }
+  method descongelar(unAnzuelo) { }
 }
 
+
+
 object estadoCongelado {
+  var congelamientoActual = 0
+
+  method iniciar() {
+    congelamientoActual = congelamientoActual + 1
+    return congelamientoActual
+  }
+
+  method finalizarTimer(unAnzuelo, id) {
+    if (id == congelamientoActual) {
+      if (game.hasVisual(efectoHielo)) {
+        game.removeVisual(efectoHielo)
+      }
+      unAnzuelo.estado().descongelar(unAnzuelo)
+    }
+  }
+
   method partidaTerminada() = false
   method congelado() = true
   method invulnerable() = false
@@ -308,11 +307,21 @@ object estadoCongelado {
     if (game.hasVisual(efectoHielo)) {
       game.removeVisual(efectoHielo)
     }
-    unAnzuelo.recibirDanio(cantidad)
+    estadoNormal.perderVidas(unAnzuelo, cantidad)
   }
 
   method congelar(unAnzuelo) { }
+
+  method terminarInvulnerabilidad(unAnzuelo) { }
+
+
+  method descongelar(unAnzuelo) {
+    unAnzuelo.estado(estadoNormal)
+  }
 }
+
+
+
 
 object estadoInvulnerable {
   method partidaTerminada() = false
@@ -329,7 +338,15 @@ object estadoInvulnerable {
 
   method perderVidas(unAnzuelo, cantidad) { }
   method congelar(unAnzuelo) { }
+
+  method terminarInvulnerabilidad(unAnzuelo) {
+  unAnzuelo.estado(estadoNormal)
 }
+  method descongelar(unAnzuelo) { }
+}
+
+
+
 
 object estadoGameOver {
   method partidaTerminada() = true
@@ -340,7 +357,11 @@ object estadoGameOver {
   method bajarAnzuelo(unAnzuelo) { }
   method perderVidas(unAnzuelo, cantidad) { }
   method congelar(unAnzuelo) { }
+
+  method terminarInvulnerabilidad(unAnzuelo) { }
+  method descongelar(unAnzuelo) { }
 }
+
 
 
 object marcadorPuntos {
@@ -349,11 +370,13 @@ object marcadorPuntos {
   method textColor() = "FFFFFF"
 }
 
+
 object marcadorVidas{
   method position() = game.at(8,9)
   method text()= "Vidas: " + anzuelo.vidas().toString()
   method textColor()= "FF0000"
 }
+
 
 object pantallaGameOver{
   method position() = game.at(5,5)
@@ -370,10 +393,13 @@ object pantallaGameOver{
   method textColor() = "FF0000"
 }
 
+
+
 object efectoDanio {
   method position() = game.at(0, 0)
   method image() = "destelloRojo.png"
 }
+
 
 object efectoHielo{
   method position()= game.at(0,0)

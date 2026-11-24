@@ -24,11 +24,23 @@ Recuerden que para cada checkpoint hay [expectativas mínimas](https://docs.goog
 
 ## Objetivo
 
-TODO
+Pescar la mayor cantidad de peces posibles manejando un anzuelo desde la superficie hasta el fondo y subiendolos una vez pescados para sumar puntos:
+
+Puntajes de pesca:
+- Pez comun: 5 puntos
+- Pez rapido: 25 puntos
+- Pez cardumen y Pez rey: 20 puntos cada uno (al atrapar al rey se engancha todo el cardumen disponible, de forma que el cardumen completo da 60 puntos)
+- Pez especial: 50 puntos (aparece luego de haber pescado al menos un pez comun, uno rapido y uno de cardumen)
+
+El jugador comienza con 3 vidas y debe intentar evitar obstaculos: el pez venenoso resta 1 vida, la piedra resta 2 vidas y hace soltar la captura, y el bloque de hielo congela el anzuelo durante 2 segundos.
+
 
 ## Controles
 
-TODO
+- Flecha arriba: subir el anzuelo
+- Flecha abajo: bajar el anzuelo
+- Barra espaciadora: soltar el pez capturado
+- Tecla R: reiniciar la partida al llegar a Game Over (habiendo perdido las 3 vidas)
 
 # Explicaciones
 

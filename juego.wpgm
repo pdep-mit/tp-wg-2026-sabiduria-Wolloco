@@ -153,17 +153,13 @@ program NombreDeJuego {
 
   //CONTROLES PARA JUGAR
 
-  keyboard.up().onPressDo({
-    if (!anzuelo.partidaTerminada() && !anzuelo.congelado()) {
-      anzuelo.subirAnzuelo()
-    }
-  })
+ keyboard.up().onPressDo({
+  anzuelo.subirAnzuelo()
+ })
 
-  keyboard.down().onPressDo({
-    if (!anzuelo.partidaTerminada() && !anzuelo.congelado()) {
-      anzuelo.bajarAnzuelo()
-    }
-  })
+   keyboard.down().onPressDo({
+  anzuelo.bajarAnzuelo()
+ })
 
   keyboard.space().onPressDo({
     if (!anzuelo.partidaTerminada()) {
@@ -214,6 +210,11 @@ program NombreDeJuego {
       }
       piedra.position(game.at(0, 3))
 
+      //reinicia el hielo
+      if (game.hasVisual(hielo)) {
+        game.removeVisual(hielo)
+      }
+      hielo.position(game.at(0, 3))
 
       //reinicia el cardumen
       cardumen.reiniciar()
@@ -226,11 +227,14 @@ program NombreDeJuego {
       proximoPezVenenoso = 16
       proximaPiedra = 29
       proximaPasadaCardumen = 45
+      proximoPezEspecial = 0
+      proximoHielo = 20
 
       pezComunActual = null
       pezRapidoActual = null
       pezVenenosoActual = null
       pezEspecialActual = null
+      hieloActual = null
 
       //reinicia anzuelo, puntos, vidas y pantalla
       anzuelo.resetear()
@@ -329,7 +333,7 @@ program NombreDeJuego {
         proximoHielo= segundosPartida + 15
       }
 
-      //APARICIONES DEL CARDUMEN: 1era vez a los 45 seg, a partir de ahi cada 15 seg minimo y espera que no haya otros peces ni piedra
+      //APARICIONES DEL CARDUMEN: 1era vez a los 45 seg, a partir de ahi cada 15 seg si no fueron atrapados y espera que no haya otros peces ni piedra
 
       if (segundosPartida >= proximaPasadaCardumen &&
           pecesEnAgua == 0 &&
@@ -345,7 +349,7 @@ program NombreDeJuego {
         pecesEnAgua = pecesEnAgua + cardumenEnAgua
       }
 
-      //APARICIONES DE PECES NORMALES: max 3 peces nadando al mismo tiempo, el cardumen tiene prioridad frente al resto al aparecer
+      //APARICIONES DE PECES NORMALES: max 3 peces nadando al mismo tiempo, el cardumen tiene prioridad frente al resto al aparecer para no saturar pantalla
 
       if (cardumenEnAgua == 0 &&
           segundosPartida < proximaPasadaCardumen) {
@@ -417,11 +421,11 @@ program NombreDeJuego {
         }
       }
       
-      // CONTROL Y APARICIÓN DEL PEZ ESPECIAL
+      //CONTROL APARICIONES DEL PEZ ESPECIAL
       if (pezEspecialActual != null) {
         if (!game.hasVisual(pezEspecialActual) || anzuelo.pecesPescados().contains(pezEspecialActual)) {
           pezEspecialActual = null
-          proximoPezEspecial = segundosPartida + 20 // Espera 20 segs para reaparecer
+          proximoPezEspecial = segundosPartida + 45 //va a tener que esperar 45 segs para reespawnear
         }
       }
 
