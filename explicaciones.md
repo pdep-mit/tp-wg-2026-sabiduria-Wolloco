@@ -54,4 +54,4 @@ Los bloques se utilizan tanto para programar acciones que ocurren con el tiempo 
 
 # Diagramas
 
-![Diagrama del juego](assets/DiagramaTP.jpg)
+![Diagrama del juego](assets/Diagrama_TP.jpg)
